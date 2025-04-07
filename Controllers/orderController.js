@@ -25,11 +25,20 @@ async function bookOrder(req ,res){
         empID :''
     }
     try{
-       const data = await orderModel.create(request)
+        // Check for Pending orders for a particular Phone Number
+       const isPendingOrder = await orderModel.findOne(request.phone)
+       if(isPendingOrder){
+        // If order is pending then do not book another
+        return res.json("Order Already Pending")
+       } 
+       else {
+        const data = await orderModel.create(request) // Book order 
 
-       // Logic to add booking data to redis
-
-        return res.json(data)
+        // Logic to add booking data to redis
+ 
+         return res.json(data)
+       }
+      
     }
     catch(error){
         return res.json(error)
@@ -51,7 +60,7 @@ async function checkStatus(req, res){
 }
 
 async function cancelOrder(req , res){
-
+     // Logic to check id order is canceled within 1 hour = then cancel; if order canceled after one hour the do not cancel;
     // update in MongoDB and Remove from redis
     
   try{
