@@ -11,19 +11,30 @@ function genOTp(req , res){
 }
 
 async function  verifyOtp(req ,res){
-    if(req.body.otp === 6969){ //OTP verification logic should be placed here
-        const token = generateToken(req.body.phone)
-        
-        const data = await userModel.findOne({
+    let c = 0;
+    for(i=0; i< 4 ; i++){
+        c= (c*10)+ parseInt(req.body.otp[i])
+    }
+    if(c==6969){ //OTP verification logic should be placed here
+        // const token = generateToken(req.body.phone) 
+        const token = "Hello";
+       
+        const details = await userModel.findOne({
             "Phone" : req.body.phone   
         })
         
         return res.json({
-        data : data,
-        token : token
+        details : details,
+        token : token,
+        status :"verified"
        })
     }
-    return res.json("Not Verified")
+    else{
+        console.log("Not verified")
+        return res.json({status :"Not verified"})
+      
+    }
+    
     
 }
 module.exports = {genOTp ,verifyOtp, }
