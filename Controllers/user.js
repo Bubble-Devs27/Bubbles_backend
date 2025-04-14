@@ -1,4 +1,5 @@
 const userModel = require("../Models/user");
+const custIDgen = require("../Services/custIDgen");
 const { generateToken } = require("../Services/jwtToken");
 
 
@@ -16,13 +17,14 @@ async function  verifyOtp(req ,res){
         c= (c*10)+ parseInt(req.body.otp[i])
     }
     if(c==6969){ //OTP verification logic should be placed here
-        // const token = generateToken(req.body.phone) 
-        const token = "Hello";
-       
+        //  
+        let token = null;
         const details = await userModel.findOne({
             "Phone" : req.body.phone   
         })
-        
+        if (details){
+            token = generateToken(req.body.phone)
+        }
         return res.json({
         details : details,
         token : token,
@@ -37,4 +39,19 @@ async function  verifyOtp(req ,res){
     
     
 }
-module.exports = {genOTp ,verifyOtp, }
+
+async function addNewUser(req,res){
+    const ID = custIDgen();
+    const details = await userModel.create({
+        name : req.body.name,
+        Phone : req.body.Phone,
+        address :req.body.address,
+        custID : ID
+    })
+    token = generateToken(req.body.Phone)
+    return res.json({
+        details : details,
+        token : token
+    })
+}
+module.exports = {genOTp ,verifyOtp, addNewUser}
