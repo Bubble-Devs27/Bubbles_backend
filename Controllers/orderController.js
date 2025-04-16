@@ -1,41 +1,38 @@
 const orderModel = require('../Models/orders')
 
 async function bookOrder(req ,res){
-    const data ={
-        phone : 8427791755,
-        prefTime :{from :{hour : 10 , minute : 0} , to :{hour : 12 , minute : 0}},
-        prefDate :{day : 4 , month : 2 ,year : 2025},
-        status : 'complete',
-        completeTime :{hour : 12 , minute : 0},
-        completeDate :{day : 4 , month : 2 ,year : 2025}, 
-        address :'161 , Hargobind Nagar',
-        type :'full Car Wash',
-        feedback : 0
-    }
+     
     const request = {
         phone : req.body.phone,
         prefTime :req.body.prefTime,
         prefDate :req.body.prefDate,
         status : 'Booked',
-        completeTime :req.body.completeTime,
-        completeDate :req.body.completeDate, 
+        completeTime :{},
+        completeDate :{}, 
         address :req.body.address,
-        type :req.body.type,
+        orderType :req.body.orderType,
+        carType : req.body.carType,
         feedback : 0,
-        empID :''
+        empID :'',
+        otp : 2368,
+        price : req.body.price
     }
+
+
+    
     try{
         // Check for Pending orders for a particular Phone Number
-       const isPendingOrder = await orderModel.findOne(request.phone)
+        
+       const isPendingOrder = await orderModel.findOne({phone : request.phone})
        if(isPendingOrder){
+        console.log("order Already pending")
         // If order is pending then do not book another
-        return res.json("Order Already Pending")
+        return res.json("pending")
        } 
        else {
-        const data = await orderModel.create(request) // Book order 
-
-        // Logic to add booking data to redis
- 
+         // Book order
+         const data = await orderModel.create(request) 
+         console.log("created")
          return res.json(data)
        }
       
@@ -46,12 +43,13 @@ async function bookOrder(req ,res){
 }
 
 async function checkStatus(req, res){
+    console.log(req.body)
     try{
-        const {status} = await orderModel.findByID(req.body._id)
-        
+        // const {status} = await orderModel.findByID(req.body._id)
+        const order = await orderModel.findOne(req.body)
         // Status Should be Check from Redis only
 
-        return res.json(status)
+        return res.json(order)
     }
     catch(error){
         console.log(error)
@@ -83,4 +81,6 @@ async function historyOrder(req , res){
          return res.json(error)
      }
 }
+
+
 module.exports = {bookOrder , cancelOrder , historyOrder ,checkStatus}

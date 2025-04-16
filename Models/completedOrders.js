@@ -7,7 +7,8 @@ const completedorderSchema = mongoose.Schema({
     completeTime : Object,
     completeDate : Object,
     address : String,
-    type : String,
+    ordeType : String,
+    carType :String,
     feedback :Number,
     empID : String
 })

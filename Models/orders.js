@@ -1,15 +1,18 @@
 const mongoose = require('mongoose')
 const orderSchema = mongoose.Schema({
     phone : Number,
-    prefTime : Object,
+    prefTime : String,
     prefDate : Object,
     status :String,
     completeTime : Object,
     completeDate : Object,
     address : String,
-    type : String,
+    orderType : String,
+    carType : String,
     feedback :Number,
-    empID : String
+    empID : String,
+    price : Number,
+    otp : Number
 })
 const orderModel = mongoose.model("orders" , orderSchema)
 module.exports = orderModel
