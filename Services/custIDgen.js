@@ -1,4 +1,4 @@
-const randomNumGen = require("./randomNumber")
+const {randomNumGen} = require('./randomNumber')
 function custIDgen(){
     const now = new Date();
     const year = JSON.stringify(now.getFullYear());

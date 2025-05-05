@@ -12,7 +12,8 @@ const orderSchema = mongoose.Schema({
     feedback :Number,
     empID : String,
     price : Number,
-    otp : Number
+    otp : Number,
+    payment : String
 })
 const orderModel = mongoose.model("orders" , orderSchema)
 module.exports = orderModel
