@@ -1,6 +1,6 @@
 const userModel = require("../Models/user");
 const custIDgen = require("../Services/custIDgen");
-const { generateToken } = require("../Services/jwtToken");
+const { generateToken, verifyToken } = require("../Services/jwtToken");
 
 
 // Main Logic
@@ -41,17 +41,57 @@ async function  verifyOtp(req ,res){
 }
 
 async function addNewUser(req,res){
-    const ID = custIDgen();
-    const details = await userModel.create({
-        name : req.body.name,
-        Phone : req.body.Phone,
-        address :req.body.address,
-        custID : ID
-    })
-    token = generateToken(req.body.Phone)
-    return res.json({
-        details : details,
-        token : token
-    })
+    
+     const phone = verifyToken(req.body.token);
+      if (!phone) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+    try {
+       const result =  await userModel.findOneAndUpdate({Phone :phone} , {$set :{name : req.body.name}} , {upsert : false , returnDocument: 'after' })
+       console.log(result)
+       if(result){
+        return res.status(200).json(result)
+       }
+       else {
+        return res.status(201)
+       }
+    }
+    catch (err){
+        res.status(202).json({"error" : "internal server error"})
+        console.log(err)
+    }
 }
-module.exports = {genOTp ,verifyOtp, addNewUser}
+
+async function loginAtPhone (req,res){
+    const ID = custIDgen();
+    if(req.body.otp ==1234){
+        const userDetails =await userModel.findOne({ "Phone" : req.body.Phone})
+        if(userDetails){
+            return res.status(200).json({
+                details : userDetails,
+                token : generateToken(req.body.Phone)
+            })
+        }
+        else {
+           try{
+             const userDetails =await userModel.create({
+                name :'',
+                Phone : req.body.Phone,
+                address :'',
+                custID :ID
+            })
+            return res.status(201).json({
+                details : userDetails,
+                token : generateToken(req.body.Phone)
+            })
+           }
+           catch(err){
+                res.status(500).json({"error" : err})
+           }
+        }
+    }
+    else {
+        return res.status(205).json({status :"Invalid OTP"})
+    }
+}
+module.exports = {genOTp ,verifyOtp, addNewUser ,loginAtPhone}

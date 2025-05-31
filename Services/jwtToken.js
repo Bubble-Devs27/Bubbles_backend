@@ -8,7 +8,7 @@ function generateToken(data){
 function verifyToken(token){
    try{
   
-    const decoded = jwt.verify(JSON.parse(token) , "testkey")
+    const decoded = jwt.verify(token , "testkey")
     return decoded;
    }
    catch(err){

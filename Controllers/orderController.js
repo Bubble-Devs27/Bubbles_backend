@@ -1,54 +1,60 @@
-const orderModel = require('../Models/orders')
+const orderModel = require('../Models/orders');
+const { verifyToken } = require('../Services/jwtToken');
 const { random4Gen } = require('../Services/randomNumber')
 
 async function bookOrder(req ,res){
+     console.log(req.body)
+     const phone = verifyToken(req.body.token);
+      if (!phone) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+     console.log("Phone" ,phone)
      const otp = random4Gen();
      const request = {
-        phone : req.body.phone,
+        phone : phone,
         prefTime :req.body.prefTime,
         prefDate :req.body.prefDate,
         status : 'Booked',
-        completeTime :{},
-        completeDate :{}, 
+        completeTime :{hour : 0 , min : 0  },
+        completeDate :req.body.prefDate, 
         address :req.body.address,
-        orderType :req.body.orderType,
-        carType : req.body.carType,
         feedback : 0,
         empID :'',
         otp : otp,
         price : req.body.price,
-        payment : req.body.payment
+        payment : req.body.payment,
+        order : req.body.order
     }
 
     
     try{
         // Check for Pending orders for a particular Phone Number
         
-      const isPendingOrder = await orderModel.findOne({phone : request.phone , status : "Booked"})
+      const isPendingOrder = await orderModel.findOne({phone,status: { $in: ["Booked", "Accepted", "Started"] }});
       if(req.body.payment == "cash"){
         if(isPendingOrder ){
-            console.log("order Already pending")
+            console.log("order Already pending" ,isPendingOrder)
             // If order is pending then do not book another
-            return res.json("pending")
+            return res.status(201).json("pending")
            } 
            else {
              // Book order
              const data = await orderModel.create(request) 
              console.log("created")
-             return res.json(data)
+             return res.status(200).json(data)
            }
       }
-      if(req.body.payment ==="upi"){
-        if(isPendingOrder){
-            console.log("order Already pending")
-            // If order is pending then do not book another
-            return res.json("pending")
-        } 
-        else{
-            console.log("No Pending order found, Open UPI App")
-            return res.json(request)
-        }
-      }
+      // if(req.body.payment ==="upi"){
+      //   if(isPendingOrder){
+      //       console.log("order Already pending")
+      //       // If order is pending then do not book another
+      //       return res.json("pending")
+      //   } 
+      //   else{
+      //       console.log("No Pending order found, Open UPI App")
+      //       return res.json(request)
+      //   }
+      // }
       else{
         const data = await orderModel.create(request) 
              console.log("created")
@@ -61,19 +67,28 @@ async function bookOrder(req ,res){
     }  
 }
 
-async function checkStatus(req, res){
-    console.log(req.body)
-    try{
-        // const {status} = await orderModel.findByID(req.body._id)
-        const order = await orderModel.findOne({phone : req.body.phone , status : "Booked"})
-        // Status Should be Check from Redis only
+async function checkStatus(req, res) {
+  try {
+    const phone = verifyToken(req.body.token); // or await verifyToken(...) if async
 
-        return res.json(order)
+    if (!phone) {
+      return res.status(401).json({ message: "Invalid Token" });
     }
-    catch(error){
-        console.log(error)
-        return res.json("Internel server error")
+
+    const order = await orderModel.findOne({
+  phone,
+  status: { $in: ["Booked", "Accepted", "Started"] }
+});
+
+    if (order) {
+      return res.status(200).json(order);
+    } else {
+      return res.status(205).json({ message: "Order not found" });
     }
+  } catch (error) {
+    console.error("Error in checkStatus:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 }
 
 async function cancelOrder(req , res){
@@ -93,8 +108,15 @@ async function cancelOrder(req , res){
 }
 
 async function historyOrder(req , res){
+   
+     const phone = verifyToken(req.body.token);
+     
+      if (!phone) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
     try{
-        const result = await orderModel.find({phone :8427791755})
+        const result = await orderModel.find({phone :phone ,status :"Completed" })
+        console.log(result)
          return res.json(result)
      }
      catch(error){

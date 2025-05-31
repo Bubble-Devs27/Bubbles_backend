@@ -1,5 +1,5 @@
 const express = require('express');
-const { genOTp ,verifyOtp ,addNewUser} = require('../Controllers/user');
+const { genOTp ,verifyOtp ,addNewUser ,loginAtPhone} = require('../Controllers/user');
 const loginRouter = express.Router();
 
 loginRouter.route("/genOTP")
@@ -7,7 +7,10 @@ loginRouter.route("/genOTP")
 
 loginRouter.route("/verifyOTP")
 .post(verifyOtp)
-loginRouter.route("/addNewUser")
+loginRouter.route("/update")
 .post(addNewUser)
+
+loginRouter.route("/phone")
+.post(loginAtPhone)
 
 module.exports = loginRouter;
